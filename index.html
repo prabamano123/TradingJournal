@@ -1,0 +1,912 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Trading Journal</title>
+<style>
+  :root {
+    --bg:#fff;--bg2:#f7f7f5;--bg3:#f0efe9;
+    --text:#1a1a1a;--text2:#6b6b6b;--text3:#999;
+    --border:rgba(0,0,0,0.1);--border2:rgba(0,0,0,0.18);
+    --blue-bg:#E6F1FB;--blue-border:#185FA5;--blue-text:#0C447C;
+    --green-bg:#EAF3DE;--green-border:#3B6D11;--green-text:#27500A;
+    --red-bg:#FCEBEB;--red-border:#A32D2D;--red-text:#791F1F;
+    --amber-bg:#FAEEDA;--amber-border:#854F0B;--amber-text:#633806;
+    --teal-bg:#E1F5EE;--teal-border:#0F6E56;--teal-text:#085041;
+    --radius:8px;--radius-lg:12px;
+    --font:-apple-system,'Helvetica Neue',sans-serif;
+    --font-mono:'SF Mono','Fira Code',monospace;
+  }
+  @media(prefers-color-scheme:dark){:root{
+    --bg:#1c1c1e;--bg2:#2c2c2e;--bg3:#3a3a3c;
+    --text:#f2f2f7;--text2:#aeaeb2;--text3:#636366;
+    --border:rgba(255,255,255,0.1);--border2:rgba(255,255,255,0.18);
+    --blue-bg:#0c2d4a;--blue-border:#378ADD;--blue-text:#85B7EB;
+    --green-bg:#1a2e0d;--green-border:#639922;--green-text:#C0DD97;
+    --red-bg:#2e0f0f;--red-border:#E24B4A;--red-text:#F09595;
+    --amber-bg:#2e1e05;--amber-border:#EF9F27;--amber-text:#FAC775;
+    --teal-bg:#042e22;--teal-border:#1D9E75;--teal-text:#5DCAA5;
+  }}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:var(--font);color:var(--text);background:var(--bg3);font-size:14px}
+  a{color:var(--blue-text)}
+  .app{max-width:960px;margin:0 auto;padding:0 16px 40px}
+  .topbar{display:flex;align-items:center;justify-content:space-between;padding:16px 0;border-bottom:0.5px solid var(--border);margin-bottom:20px}
+  .topbar h1{font-size:18px;font-weight:600;letter-spacing:-0.3px}
+  .topbar-sub{font-size:12px;color:var(--text2);margin-top:2px}
+  .topbar-right{display:flex;align-items:center;gap:10px}
+  .auth-screen{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:70vh;text-align:center;padding:2rem}
+  .auth-screen h2{font-size:22px;font-weight:600;margin-bottom:10px}
+  .auth-screen p{font-size:14px;color:var(--text2);max-width:420px;line-height:1.6;margin-bottom:24px}
+  .auth-features{display:grid;grid-template-columns:1fr 1fr;gap:12px;max-width:440px;margin-bottom:28px;text-align:left}
+  .auth-feat{background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--radius);padding:12px;font-size:13px;color:var(--text2)}
+  .auth-feat strong{display:block;color:var(--text);margin-bottom:3px;font-size:13px}
+  .tabs{display:flex;gap:3px;background:var(--bg2);border-radius:var(--radius);padding:4px;margin-bottom:20px}
+  .tab{flex:1;padding:8px 10px;border:none;background:transparent;border-radius:6px;font-size:13px;font-weight:500;cursor:pointer;color:var(--text2);transition:all .15s;font-family:var(--font)}
+  .tab.active{background:var(--bg);color:var(--text);border:0.5px solid var(--border);box-shadow:0 1px 3px rgba(0,0,0,0.08)}
+  .panel{display:none}.panel.active{display:block}
+  .card{background:var(--bg);border:0.5px solid var(--border);border-radius:var(--radius-lg);padding:18px;margin-bottom:14px}
+  .card-title{font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:14px}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+  .row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:12px}
+  .row1{display:grid;grid-template-columns:1fr;gap:12px;margin-bottom:12px}
+  .field{display:flex;flex-direction:column;gap:5px}
+  .field label{font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.04em}
+  input[type=text],input[type=number],input[type=date],input[type=email],select,textarea{
+    font-size:14px;padding:9px 11px;border:0.5px solid var(--border2);border-radius:var(--radius);
+    background:var(--bg);color:var(--text);font-family:var(--font);width:100%}
+  textarea{resize:vertical;min-height:76px;line-height:1.55}
+  input:focus,select:focus,textarea:focus{outline:none;border-color:#378ADD;box-shadow:0 0 0 3px rgba(55,138,221,.12)}
+  select{cursor:pointer}
+  .alert{border-radius:var(--radius);padding:11px 14px;font-size:13px;line-height:1.5;margin-bottom:12px;display:none}
+  .alert.show{display:flex;gap:10px;align-items:flex-start}
+  .alert-warn{background:var(--amber-bg);border:0.5px solid var(--amber-border);color:var(--amber-text)}
+  .alert-danger{background:var(--red-bg);border:0.5px solid var(--red-border);color:var(--red-text)}
+  .alert-info{background:var(--blue-bg);border:0.5px solid var(--blue-border);color:var(--blue-text)}
+  .alert-success{background:var(--green-bg);border:0.5px solid var(--green-border);color:var(--green-text)}
+  .cooldown{display:none;align-items:center;gap:12px;padding:11px 14px;background:var(--red-bg);border:0.5px solid var(--red-border);border-radius:var(--radius);margin-bottom:12px;font-size:13px;color:var(--red-text)}
+  .cooldown.show{display:flex}
+  .cd-bar{flex:1;height:4px;background:var(--bg3);border-radius:2px;overflow:hidden}
+  .cd-fill{height:100%;background:#E24B4A;border-radius:2px;transition:width 1s linear;width:0%}
+  .checklist{display:flex;flex-direction:column;gap:7px}
+  .check-item{display:flex;align-items:flex-start;gap:10px;padding:9px 12px;background:var(--bg2);border-radius:var(--radius);font-size:13px;cursor:pointer;transition:background .1s;user-select:none}
+  .check-item:hover{background:var(--bg3)}
+  .check-item input{margin-top:2px;flex-shrink:0;width:15px;height:15px;cursor:pointer;accent-color:#378ADD}
+  .check-item span{line-height:1.45;color:var(--text);pointer-events:none}
+  .check-item.checked span{color:var(--text3);text-decoration:line-through}
+  .conv-row{display:flex;gap:7px;flex-wrap:wrap}
+  .conv-btn{padding:7px 14px;border:0.5px solid var(--border);background:var(--bg2);border-radius:20px;font-size:12px;cursor:pointer;color:var(--text2);font-family:var(--font);transition:all .12s}
+  .conv-btn:hover{border-color:var(--border2);color:var(--text)}
+  .conv-sel-1{background:var(--red-bg);border-color:var(--red-border);color:var(--red-text)}
+  .conv-sel-2{background:var(--amber-bg);border-color:var(--amber-border);color:var(--amber-text)}
+  .conv-sel-3{background:var(--blue-bg);border-color:var(--blue-border);color:var(--blue-text)}
+  .conv-sel-4{background:var(--green-bg);border-color:var(--green-border);color:var(--green-text)}
+  .conv-sel-5{background:var(--teal-bg);border-color:var(--teal-border);color:var(--teal-text)}
+  .ai-wrap{border:0.5px solid var(--border);border-radius:var(--radius);overflow:hidden}
+  .ai-input-row{display:flex;gap:8px;padding:8px;background:var(--bg2)}
+  .ai-input-row input{flex:1}
+  .ai-resp{padding:13px;font-size:13px;line-height:1.65;max-height:260px;overflow-y:auto;display:none;border-top:0.5px solid var(--border);color:var(--text)}
+  .ai-resp.show{display:block}
+  .ai-thinking{color:var(--text3);font-style:italic}
+  .quick-row{display:flex;gap:6px;flex-wrap:wrap;margin-top:9px}
+  .qbtn{font-size:11px;padding:4px 10px;border:0.5px solid var(--border);background:var(--bg2);border-radius:20px;cursor:pointer;color:var(--text2);font-family:var(--font)}
+  .qbtn:hover{color:var(--text);border-color:var(--border2)}
+  .btn{padding:9px 18px;border:0.5px solid var(--border2);background:var(--bg);color:var(--text);border-radius:var(--radius);font-size:13px;font-weight:500;cursor:pointer;font-family:var(--font);transition:all .13s}
+  .btn:hover{background:var(--bg2)}
+  .btn-blue{background:var(--blue-bg);border-color:var(--blue-border);color:var(--blue-text)}
+  .btn-blue:hover{opacity:.85}
+  .btn-red{background:var(--red-bg);border-color:var(--red-border);color:var(--red-text)}
+  .btn-green{background:var(--green-bg);border-color:var(--green-border);color:var(--green-text)}
+  .btn-sm{font-size:12px;padding:6px 12px}
+  .btn-row{display:flex;gap:8px;justify-content:flex-end;margin-top:16px;align-items:center}
+  .sync-pill{font-size:11px;font-weight:600;padding:4px 10px;border-radius:20px}
+  .sync-ok{background:var(--green-bg);color:var(--green-text);border:0.5px solid var(--green-border)}
+  .sync-err{background:var(--red-bg);color:var(--red-text);border:0.5px solid var(--red-border)}
+  .sync-ing{background:var(--amber-bg);color:var(--amber-text);border:0.5px solid var(--amber-border)}
+  .sync-off{background:var(--bg2);color:var(--text3);border:0.5px solid var(--border)}
+  .log-scroll{overflow-x:auto;border-radius:var(--radius-lg);border:0.5px solid var(--border)}
+  .log-tbl{width:100%;border-collapse:collapse;font-size:13px;background:var(--bg)}
+  .log-tbl th{text-align:left;padding:9px 11px;font-size:11px;font-weight:600;color:var(--text2);border-bottom:0.5px solid var(--border);text-transform:uppercase;letter-spacing:.04em;white-space:nowrap;background:var(--bg2)}
+  .log-tbl td{padding:9px 11px;border-bottom:0.5px solid var(--border);vertical-align:middle;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .log-tbl tr:last-child td{border-bottom:none}
+  .log-tbl tbody tr{cursor:pointer;transition:background .1s}
+  .log-tbl tbody tr:hover td{background:var(--blue-bg)}
+  .badge{display:inline-block;padding:2px 9px;border-radius:20px;font-size:11px;font-weight:600}
+  .b-buy{background:var(--green-bg);color:var(--green-text);border:0.5px solid var(--green-border)}
+  .b-sell{background:var(--red-bg);color:var(--red-text);border:0.5px solid var(--red-border)}
+  .b-opt{background:#EEEDFE;color:#3C3489;border:0.5px solid #534AB7}
+  .b-hold{background:var(--amber-bg);color:var(--amber-text);border:0.5px solid var(--amber-border)}
+  .metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px}
+  .mc{background:var(--bg);border:0.5px solid var(--border);border-radius:var(--radius-lg);padding:14px;text-align:center}
+  .mc-val{font-size:24px;font-weight:600;letter-spacing:-0.5px}
+  .mc-lbl{font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:.04em;margin-top:3px}
+  .filter-row{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;align-items:center}
+  .filter-row select,.filter-row input{font-size:13px;padding:7px 10px;width:auto}
+  .setup-steps{display:flex;flex-direction:column;gap:14px;margin:18px 0}
+  .step{display:flex;gap:14px;align-items:flex-start}
+  .step-num{width:26px;height:26px;border-radius:50%;background:var(--blue-bg);color:var(--blue-text);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;margin-top:1px;border:0.5px solid var(--blue-border)}
+  .step-body{flex:1;font-size:13px;line-height:1.6;color:var(--text2)}
+  .step-body strong{color:var(--text);display:block;margin-bottom:2px}
+  .step-body code{background:var(--bg3);border:0.5px solid var(--border);padding:1px 5px;border-radius:4px;font-family:var(--font-mono);font-size:12px;color:var(--text)}
+  .step-body a{color:var(--blue-text)}
+  .drive-log{font-family:var(--font-mono);font-size:12px;color:var(--text2);line-height:1.8;max-height:160px;overflow-y:auto;padding:10px;background:var(--bg2);border-radius:var(--radius);border:0.5px solid var(--border);margin-top:12px}
+  .empty{text-align:center;padding:48px;color:var(--text2)}
+  .empty strong{display:block;font-size:15px;color:var(--text);margin-bottom:6px}
+  .user-pill{display:flex;align-items:center;gap:8px}
+  .user-avatar{width:28px;height:28px;border-radius:50%;background:var(--blue-bg);border:0.5px solid var(--blue-border);object-fit:cover}
+  .user-name{font-size:13px;font-weight:500}
+  hr{border:none;border-top:0.5px solid var(--border);margin:18px 0}
+  .weakness-tbl{width:100%;border-collapse:collapse;font-size:13px}
+  .weakness-tbl th{text-align:left;padding:8px 10px;font-size:11px;font-weight:600;color:var(--text2);border-bottom:0.5px solid var(--border);text-transform:uppercase;letter-spacing:.04em}
+  .weakness-tbl td{padding:9px 10px;border-bottom:0.5px solid var(--border)}
+  .weakness-tbl tr:last-child td{border-bottom:none}
+  .bar-row{display:flex;align-items:center;gap:10px;margin-bottom:9px}
+  .bar-label{font-size:12px;color:var(--text2);width:220px;flex-shrink:0}
+  .bar-track{flex:1;height:14px;background:var(--bg2);border-radius:3px;overflow:hidden}
+  .bar-fill{height:100%;background:#378ADD;border-radius:3px}
+  .bar-val{font-size:12px;font-weight:600;min-width:22px;text-align:right}
+
+  /* ── Detail drawer (slide-in panel) ── */
+  .drawer-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.35);z-index:100;display:none;align-items:flex-start;justify-content:flex-end}
+  .drawer-overlay.open{display:flex}
+  .drawer{width:520px;max-width:95vw;height:100vh;background:var(--bg);border-left:0.5px solid var(--border);overflow-y:auto;display:flex;flex-direction:column}
+  .drawer-header{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:0.5px solid var(--border);position:sticky;top:0;background:var(--bg);z-index:1}
+  .drawer-header h2{font-size:16px;font-weight:600}
+  .drawer-body{padding:20px;flex:1}
+  .drawer-close{background:none;border:none;font-size:20px;cursor:pointer;color:var(--text2);padding:4px 8px;border-radius:4px;line-height:1}
+  .drawer-close:hover{background:var(--bg2)}
+  .detail-section{margin-bottom:20px}
+  .detail-label{font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px}
+  .detail-value{font-size:14px;color:var(--text);line-height:1.6;white-space:pre-wrap;word-break:break-word}
+  .detail-value.muted{color:var(--text2);font-style:italic}
+  .detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:20px}
+  .edit-field{display:flex;flex-direction:column;gap:5px;margin-bottom:12px}
+  .edit-field label{font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.04em}
+  .drawer-actions{display:flex;gap:8px;padding:16px 20px;border-top:0.5px solid var(--border);background:var(--bg);position:sticky;bottom:0}
+
+  /* ── Prior trades sidebar (New Entry page) ── */
+  .new-layout{display:flex;gap:16px;align-items:flex-start}
+  .new-form{flex:1;min-width:0}
+  .prior-sidebar{width:280px;flex-shrink:0;position:sticky;top:16px}
+  .prior-sidebar.hidden{display:none}
+  .prior-card{background:var(--bg);border:0.5px solid var(--amber-border);border-radius:var(--radius-lg);overflow:hidden}
+  .prior-header{background:var(--amber-bg);padding:10px 14px;border-bottom:0.5px solid var(--amber-border)}
+  .prior-header h3{font-size:12px;font-weight:600;color:var(--amber-text);text-transform:uppercase;letter-spacing:.04em}
+  .prior-header p{font-size:12px;color:var(--amber-text);margin-top:2px;opacity:.85}
+  .prior-trade{padding:12px 14px;border-bottom:0.5px solid var(--border);cursor:pointer}
+  .prior-trade:last-child{border-bottom:none}
+  .prior-trade:hover{background:var(--bg2)}
+  .prior-trade-top{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+  .prior-trade-date{font-size:11px;color:var(--text3)}
+  .prior-trade-body{font-size:12px;color:var(--text2);line-height:1.5}
+  .prior-trade-body strong{color:var(--text);display:block;margin-bottom:2px}
+  .prior-expand{font-size:12px;color:var(--blue-text);margin-top:6px;cursor:pointer;background:none;border:none;font-family:var(--font);padding:0}
+  .prior-detail{display:none;margin-top:8px;padding-top:8px;border-top:0.5px solid var(--border);font-size:12px;color:var(--text2);line-height:1.55}
+  .prior-detail.open{display:block}
+  .prior-detail-row{margin-bottom:6px}
+  .prior-detail-row strong{color:var(--text);font-size:11px;text-transform:uppercase;letter-spacing:.03em;display:block;margin-bottom:1px}
+
+  @media(max-width:700px){
+    .row3{grid-template-columns:1fr 1fr}
+    .metrics{grid-template-columns:1fr 1fr}
+    .auth-features{grid-template-columns:1fr}
+    .new-layout{flex-direction:column}
+    .prior-sidebar{width:100%;position:static}
+    .drawer{width:100vw}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- Auth screen -->
+<div id="auth-screen" class="auth-screen">
+  <h2>Trading Journal</h2>
+  <p>Your personal decision log for stock trades. Forces disciplined thinking before every buy, sell, or options move. Saves to your Google Drive — works on any device.</p>
+  <div class="auth-features">
+    <div class="auth-feat"><strong>Pre-trade checklist</strong>8 discipline gates before you can save any trade</div>
+    <div class="auth-feat"><strong>Weakness guardrails</strong>Alerts for FOMO, early selling, and speculative drift</div>
+    <div class="auth-feat"><strong>AI research</strong>Ask about valuation, news, and risks in-context</div>
+    <div class="auth-feat"><strong>Google Drive sync</strong>One JSON file in your Drive — always up to date</div>
+  </div>
+  <button class="btn btn-blue" onclick="signIn()" style="font-size:15px;padding:12px 32px">Sign in with Google</button>
+  <p style="margin-top:16px;font-size:12px;color:var(--text3)">Requires Google account. Data stored in your own Drive as <code style="font-family:monospace">trading_journal.json</code></p>
+  <div id="auth-error" class="alert alert-danger" style="margin-top:16px;max-width:440px"></div>
+  <div style="margin-top:32px;padding:16px;background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--radius-lg);max-width:480px;text-align:left">
+    <div style="font-size:12px;font-weight:600;color:var(--text);margin-bottom:8px">First time? One-time Google Cloud setup required</div>
+    <div style="font-size:12px;color:var(--text2);line-height:1.7">
+      1. Go to <a href="https://console.cloud.google.com" target="_blank">console.cloud.google.com</a><br>
+      2. Create a project → Enable <strong>Google Drive API</strong><br>
+      3. OAuth consent screen → External → Add your Gmail as test user<br>
+      4. Credentials → Create OAuth 2.0 Client ID → Web application<br>
+      5. Add your GitHub Pages URL to Authorized JavaScript origins<br>
+      6. Copy your Client ID into the field below and save
+    </div>
+    <div style="margin-top:12px;display:flex;gap:8px;align-items:center">
+      <input type="text" id="cfg-client-id" placeholder="Paste your Google OAuth Client ID here" style="flex:1;font-size:12px">
+      <button class="btn btn-sm" onclick="saveClientId()">Save</button>
+    </div>
+    <div style="font-size:11px;color:var(--text3);margin-top:6px">Saved locally in browser storage. Never sent anywhere.</div>
+  </div>
+</div>
+
+<!-- Main app -->
+<div id="main-app" style="display:none">
+  <div class="topbar">
+    <div>
+      <h1>Trading Journal</h1>
+      <div class="topbar-sub" id="drive-file-label">Connecting to Google Drive...</div>
+    </div>
+    <div class="topbar-right">
+      <span class="sync-pill sync-off" id="sync-badge">Connecting</span>
+      <button class="btn btn-sm" onclick="syncNow()">Sync</button>
+      <div class="user-pill">
+        <img class="user-avatar" id="user-avatar" src="" alt="">
+        <span class="user-name" id="user-name"></span>
+        <button class="btn btn-sm" onclick="signOut()" style="font-size:11px;padding:4px 9px">Sign out</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" id="tab-new" onclick="showTab('new')">New entry</button>
+    <button class="tab" id="tab-log" onclick="showTab('log')">Trade log</button>
+    <button class="tab" id="tab-review" onclick="showTab('review')">Review</button>
+    <button class="tab" id="tab-setup" onclick="showTab('setup')">Settings</button>
+  </div>
+
+  <!-- NEW ENTRY -->
+  <div class="panel active" id="panel-new">
+    <div class="new-layout">
+      <div class="new-form">
+        <div id="w-alert" class="alert alert-warn"></div>
+        <div id="g-alert" class="alert alert-warn"></div>
+        <div id="cooldown" class="cooldown">
+          <span style="font-weight:600;white-space:nowrap">Cool-down</span>
+          <span style="flex:1">Reactive trade detected. Wait before acting.</span>
+          <div class="cd-bar"><div class="cd-fill" id="cd-fill"></div></div>
+          <span id="cd-time" style="font-weight:600;min-width:34px">60s</span>
+        </div>
+        <div class="card">
+          <div class="card-title">Trade details</div>
+          <div class="row3">
+            <div class="field"><label>Ticker</label><input id="f-ticker" type="text" placeholder="NVDA" oninput="this.value=this.value.toUpperCase();tickerChanged()"></div>
+            <div class="field"><label>Action</label>
+              <select id="f-action" onchange="checkWeakness()">
+                <option value="">— select —</option>
+                <option>BUY</option><option>SELL</option><option>ADD</option><option>TRIM</option>
+                <option>OPTIONS-BUY</option><option>OPTIONS-SELL</option><option>HOLD (reaffirm)</option>
+              </select>
+            </div>
+            <div class="field"><label>Trade type</label>
+              <select id="f-type" onchange="checkWeakness()">
+                <option value="">— select —</option>
+                <option>Long-term thesis</option><option>Tactical add on dip</option>
+                <option>Momentum / news-driven</option><option>Rebalance</option>
+                <option>Stop-loss exit</option><option>Options strategy</option><option>Speculative</option>
+              </select>
+            </div>
+          </div>
+          <div class="row3">
+            <div class="field"><label>Price / strike ($)</label><input id="f-price" type="number" placeholder="0.00" step="0.01"></div>
+            <div class="field"><label>Quantity / contracts</label><input id="f-qty" type="number" placeholder="shares or #"></div>
+            <div class="field"><label>Date</label><input id="f-date" type="date"></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">Investment thesis</div>
+          <div class="row1"><div class="field"><label>Core thesis — be specific</label>
+            <textarea id="f-thesis" placeholder="e.g. NVDA data center beat signals continued hyperscaler capex cycle. IO Fund Q2 confirmed bull case."></textarea>
+          </div></div>
+          <div class="row2">
+            <div class="field"><label>What triggered this today?</label>
+              <textarea id="f-catalyst" placeholder="Earnings, upgrade, price dip, news article, IO Fund / TL20 alert..." style="min-height:60px"></textarea>
+            </div>
+            <div class="field"><label>Honest self-check</label>
+              <select id="f-fomo">
+                <option value="">— be honest —</option>
+                <option>Real thesis change / new fundamental data</option>
+                <option>Quality dip — adding to existing compounder</option>
+                <option>Positive news momentum</option>
+                <option>FOMO — I might be chasing</option>
+                <option>Uncertain — need more research</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">Exit plan — required before entry</div>
+          <div class="row3">
+            <div class="field"><label>Target price / timeline</label><input id="f-target" type="text" placeholder="e.g. $180 by Q4 2026"></div>
+            <div class="field"><label>Stop-loss level</label><input id="f-stop" type="text" placeholder="e.g. Close below $130"></div>
+            <div class="field"><label>Max loss I accept</label><input id="f-maxloss" type="text" placeholder="e.g. 20% or $2,000"></div>
+          </div>
+          <div class="row2">
+            <div class="field"><label>What would prove my thesis WRONG?</label>
+              <textarea id="f-wrong" placeholder="e.g. Two consecutive data center misses, BLA rejection..." style="min-height:64px"></textarea>
+            </div>
+            <div class="field"><label>What justifies holding LONGER?</label>
+              <textarea id="f-hold" placeholder="e.g. New hyperscaler contracts, margin expansion..." style="min-height:64px"></textarea>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">Pre-trade checklist</div>
+          <div class="checklist" id="checklist">
+            <div class="check-item" onclick="toggleCheck(this)"><input type="checkbox"><span>Read the most recent earnings report or press release for this company</span></div>
+            <div class="check-item" onclick="toggleCheck(this)"><input type="checkbox"><span>Checked current valuation (P/E, EV/EBITDA, P/S) vs. sector peers</span></div>
+            <div class="check-item" onclick="toggleCheck(this)"><input type="checkbox"><span>This fits my core themes: AI infrastructure, moat-based compounders, or quality biotech</span></div>
+            <div class="check-item" onclick="toggleCheck(this)"><input type="checkbox"><span>Written exit plan exists — target, stop-loss, and thesis-break trigger are filled in above</span></div>
+            <div class="check-item" onclick="toggleCheck(this)"><input type="checkbox"><span>I am not reacting to a single headline or short-term price move</span></div>
+            <div class="check-item" onclick="toggleCheck(this)"><input type="checkbox"><span>This is not pre-profit speculative — or if it is, I have set a hard position cap</span></div>
+            <div class="check-item" onclick="toggleCheck(this)"><input type="checkbox"><span>Checked my trim/exit watch list — this name is not already flagged for exit</span></div>
+            <div class="check-item" onclick="toggleCheck(this)"><input type="checkbox"><span>24+ hours since first considering this, or I can justify acting now</span></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">Conviction score</div>
+          <p style="font-size:13px;color:var(--text2);margin-bottom:10px;line-height:1.5">Low conviction + large allocation = your documented danger zone.</p>
+          <div class="conv-row" id="conv-row">
+            <button class="conv-btn" onclick="pickConv(1,this)">1 — Speculative</button>
+            <button class="conv-btn" onclick="pickConv(2,this)">2 — Below average</button>
+            <button class="conv-btn" onclick="pickConv(3,this)">3 — Moderate</button>
+            <button class="conv-btn" onclick="pickConv(4,this)">4 — High confidence</button>
+            <button class="conv-btn" onclick="pickConv(5,this)">5 — Core position</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">AI research assistant</div>
+          <p style="font-size:13px;color:var(--text2);margin-bottom:10px;line-height:1.5">Powered by Claude with live web search. <span id="api-key-status" style="font-size:11px;margin-left:4px"></span></p>
+          <div style="display:flex;gap:8px;margin-bottom:10px;align-items:center">
+            <input type="password" id="cfg-api-key" placeholder="Paste Anthropic API key (sk-ant-...)" style="flex:1;font-size:12px">
+            <button class="btn btn-sm" onclick="saveApiKey()">Save key</button>
+          </div>
+          <div class="ai-wrap">
+            <div class="ai-input-row">
+              <input type="text" id="ai-q" placeholder='e.g. "NVDA P/E vs AMD" or "latest IBRX news"' onkeydown="if(event.key==='Enter')doAsk()">
+              <button class="btn btn-blue btn-sm" onclick="doAsk()">Ask ↗</button>
+            </div>
+            <div class="ai-resp" id="ai-resp"></div>
+          </div>
+          <div class="quick-row" id="quick-row"></div>
+        </div>
+        <div class="card">
+          <div class="card-title">Notes & emotional state</div>
+          <div class="row2">
+            <div class="field"><label>Notes (links, portfolio context, sizing)</label>
+              <textarea id="f-notes" placeholder="IO Fund Q2 letter link, Motley Fool article, position size vs portfolio..."></textarea>
+            </div>
+            <div class="field"><label>Emotional state right now</label>
+              <select id="f-emotion">
+                <option value="">— check yourself —</option>
+                <option>Calm and well-researched</option>
+                <option>Excited (watch for FOMO bias)</option>
+                <option>Anxious / fearful</option>
+                <option>Frustrated (revenge trade risk)</option>
+                <option>Confident after positive news</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="btn-row">
+          <span id="chk-lbl" style="font-size:12px;color:var(--text2)">0 / 8 checklist items</span>
+          <button class="btn" onclick="clearForm()">Clear</button>
+          <button class="btn btn-blue" onclick="saveEntry()">Save to Google Drive →</button>
+        </div>
+      </div>
+
+      <!-- Prior trades sidebar -->
+      <div class="prior-sidebar hidden" id="prior-sidebar">
+        <div class="prior-card">
+          <div class="prior-header">
+            <h3 id="prior-title">Prior trades</h3>
+            <p id="prior-subtitle"></p>
+          </div>
+          <div id="prior-list"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TRADE LOG -->
+  <div class="panel" id="panel-log">
+    <div class="filter-row">
+      <select id="fl-action" onchange="renderLog()">
+        <option value="">All actions</option>
+        <option>BUY</option><option>SELL</option><option>ADD</option><option>TRIM</option>
+        <option>OPTIONS-BUY</option><option>OPTIONS-SELL</option><option>HOLD (reaffirm)</option>
+      </select>
+      <select id="fl-type" onchange="renderLog()">
+        <option value="">All types</option>
+        <option>Long-term thesis</option><option>Tactical add on dip</option>
+        <option>Momentum / news-driven</option><option>Speculative</option>
+      </select>
+      <input type="text" id="fl-ticker" placeholder="Filter ticker..." oninput="renderLog()" style="width:130px">
+      <button class="btn btn-sm" onclick="exportCSV()" style="margin-left:auto">Export CSV</button>
+    </div>
+    <p style="font-size:12px;color:var(--text2);margin-bottom:10px">Click any row to view full details or edit.</p>
+    <div id="log-out"></div>
+  </div>
+
+  <!-- REVIEW -->
+  <div class="panel" id="panel-review">
+    <div class="metrics" id="metrics-out"></div>
+    <div class="card"><div class="card-title">Weakness pattern tracker</div><div id="weakness-out"></div></div>
+    <div class="card"><div class="card-title">Emotional state log</div><div id="emotion-out"></div></div>
+  </div>
+
+  <!-- SETTINGS -->
+  <div class="panel" id="panel-setup">
+    <div class="card">
+      <div class="card-title">Google Drive configuration</div>
+      <p style="font-size:13px;color:var(--text2);line-height:1.65;margin-bottom:16px">
+        Your trades are stored as <code style="font-family:monospace;font-size:12px">trading_journal.json</code> in your Google Drive. Data never touches any third-party server.
+      </p>
+      <div class="setup-steps">
+        <div class="step"><div class="step-num">1</div><div class="step-body"><strong>Create a Google Cloud project</strong>Go to <a href="https://console.cloud.google.com" target="_blank">console.cloud.google.com</a> → New Project</div></div>
+        <div class="step"><div class="step-num">2</div><div class="step-body"><strong>Enable the Google Drive API</strong>APIs & Services → Library → search "Google Drive API" → Enable</div></div>
+        <div class="step"><div class="step-num">3</div><div class="step-body"><strong>Configure OAuth consent screen</strong>External → Add your Gmail as a Test user → Save</div></div>
+        <div class="step"><div class="step-num">4</div><div class="step-body"><strong>Create OAuth 2.0 credentials</strong>Credentials → Create → OAuth 2.0 Client ID → Web application → add your GitHub Pages URL to Authorized JavaScript origins</div></div>
+        <div class="step"><div class="step-num">5</div><div class="step-body"><strong>Paste your Client ID below and save</strong></div></div>
+      </div>
+      <hr>
+      <div class="row2">
+        <div class="field"><label>Google OAuth Client ID</label><input type="text" id="cfg-cid-settings" placeholder="xxxx.apps.googleusercontent.com"></div>
+        <div class="field"><label>Drive file name</label><input type="text" id="cfg-fname" placeholder="trading_journal.json" value="trading_journal.json"></div>
+      </div>
+      <div class="btn-row" style="justify-content:flex-start;margin-top:0">
+        <button class="btn btn-blue" onclick="saveSettings()">Save settings</button>
+        <button class="btn" onclick="syncNow()">Force sync from Drive</button>
+        <button class="btn" onclick="pushAll()">Force push to Drive</button>
+      </div>
+      <div class="drive-log" id="drive-log">Drive log will appear here...</div>
+    </div>
+    <div class="card">
+      <div class="card-title">Anthropic API key (for AI research)</div>
+      <p style="font-size:13px;color:var(--text2);line-height:1.65;margin-bottom:12px">Get a key at <a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a>. Stored only in your browser's localStorage.</p>
+      <div style="display:flex;gap:8px;align-items:center;max-width:500px">
+        <input type="password" id="cfg-api-settings" placeholder="sk-ant-..." style="flex:1">
+        <button class="btn btn-sm btn-blue" onclick="saveApiKeyFromSettings()">Save</button>
+        <button class="btn btn-sm btn-red" onclick="clearApiKey()">Clear</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- DETAIL / EDIT DRAWER -->
+<div class="drawer-overlay" id="drawer-overlay" onclick="closeDrawer(event)">
+  <div class="drawer" id="drawer">
+    <div class="drawer-header">
+      <h2 id="drawer-title">Trade detail</h2>
+      <div style="display:flex;gap:8px;align-items:center">
+        <button class="btn btn-sm btn-blue" id="drawer-edit-btn" onclick="toggleEdit()">Edit</button>
+        <button class="drawer-close" onclick="closeDrawerDirect()">×</button>
+      </div>
+    </div>
+    <div class="drawer-body" id="drawer-body"></div>
+    <div class="drawer-actions" id="drawer-actions" style="display:none">
+      <button class="btn btn-blue" onclick="saveEdit()">Save changes to Drive</button>
+      <button class="btn" onclick="cancelEdit()">Cancel</button>
+      <button class="btn btn-red" style="margin-left:auto" onclick="deleteFromDrawer()">Delete entry</button>
+    </div>
+  </div>
+</div>
+
+</div>
+<script src="https://accounts.google.com/gsi/client" async></script>
+<script>
+// ── State ──────────────────────────────────────────────────────────────────
+let trades=[], driveFileId=null, accessToken=null, conviction=0, cdActive=false;
+let drawerTradeId=null, drawerEditMode=false;
+const SCOPES='https://www.googleapis.com/auth/drive.file';
+
+// ── Config ──────────────────────────────────────────────────────────────────
+function cfg(k,v){if(v!==undefined)localStorage.setItem('tj_'+k,v);return localStorage.getItem('tj_'+k)||''}
+function saveClientId(){const v=document.getElementById('cfg-client-id').value.trim();if(!v)return alert('Please paste your Client ID.');cfg('client_id',v);alert('Client ID saved. Click Sign in.')}
+function saveSettings(){const cid=document.getElementById('cfg-cid-settings').value.trim();const fn=document.getElementById('cfg-fname').value.trim()||'trading_journal.json';if(cid)cfg('client_id',cid);cfg('filename',fn);alert('Settings saved.')}
+function saveApiKey(){const v=document.getElementById('cfg-api-key').value.trim();if(!v)return;cfg('api_key',v);document.getElementById('cfg-api-key').value='';updateApiKeyStatus();alert('API key saved.')}
+function saveApiKeyFromSettings(){const v=document.getElementById('cfg-api-settings').value.trim();if(!v)return;cfg('api_key',v);document.getElementById('cfg-api-settings').value='';updateApiKeyStatus();alert('API key saved.')}
+function clearApiKey(){localStorage.removeItem('tj_api_key');updateApiKeyStatus()}
+function updateApiKeyStatus(){const el=document.getElementById('api-key-status');el.textContent=cfg('api_key')?'✓ Key saved':'No key saved';el.style.color=cfg('api_key')?'var(--green-text)':'var(--text3)'}
+function getFilename(){return cfg('filename')||'trading_journal.json'}
+
+// ── Auth ────────────────────────────────────────────────────────────────────
+let tokenClient;
+function signIn(){
+  const cid=cfg('client_id');
+  if(!cid){const ae=document.getElementById('auth-error');ae.textContent='Please paste your Google OAuth Client ID first.';ae.classList.add('show');return}
+  if(!window.google){alert('Google Identity Services not loaded. Serve this file over http://.');return}
+  tokenClient=google.accounts.oauth2.initTokenClient({client_id:cid,scope:SCOPES,callback:async(resp)=>{
+    if(resp.error){console.error(resp);return}
+    accessToken=resp.access_token;
+    await fetchUserInfo();
+    document.getElementById('auth-screen').style.display='none';
+    document.getElementById('main-app').style.display='block';
+    await loadDriveFile();
+  }});
+  tokenClient.requestAccessToken();
+}
+async function fetchUserInfo(){
+  try{const r=await fetch('https://www.googleapis.com/oauth2/v3/userinfo',{headers:{Authorization:'Bearer '+accessToken}});
+  const u=await r.json();
+  document.getElementById('user-name').textContent=u.name||u.email||'';
+  if(u.picture)document.getElementById('user-avatar').src=u.picture}catch(e){}
+}
+function signOut(){accessToken=null;trades=[];driveFileId=null;document.getElementById('main-app').style.display='none';document.getElementById('auth-screen').style.display='flex';if(window.google)google.accounts.oauth2.revoke(accessToken,()=>{})}
+
+// ── Drive ───────────────────────────────────────────────────────────────────
+function dlog(msg,type){const el=document.getElementById('drive-log');const ts=new Date().toLocaleTimeString();const c={ok:'var(--green-text)',err:'var(--red-text)',info:'var(--text2)'}[type]||'var(--text2)';el.innerHTML=`<span style="color:${c}">[${ts}] ${msg}</span>\n`+el.innerHTML}
+function setSyncBadge(s,t){const el=document.getElementById('sync-badge');el.className='sync-pill sync-'+s;el.textContent=t}
+async function driveGet(path){const r=await fetch('https://www.googleapis.com/drive/v3/'+path,{headers:{Authorization:'Bearer '+accessToken}});if(!r.ok)throw new Error('Drive '+r.status);return r.json()}
+async function findFile(){const q=encodeURIComponent(`name='${getFilename()}' and trashed=false`);const d=await driveGet(`files?q=${q}&fields=files(id,name)`);return d.files&&d.files.length?d.files[0].id:null}
+async function readFile(id){const r=await fetch(`https://www.googleapis.com/drive/v3/files/${id}?alt=media`,{headers:{Authorization:'Bearer '+accessToken}});if(!r.ok)throw new Error('Read '+r.status);return r.text()}
+async function createFile(content){const meta={name:getFilename(),mimeType:'application/json'};const form=new FormData();form.append('metadata',new Blob([JSON.stringify(meta)],{type:'application/json'}));form.append('media',new Blob([content],{type:'application/json'}));const r=await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id',{method:'POST',headers:{Authorization:'Bearer '+accessToken},body:form});if(!r.ok)throw new Error('Create '+r.status+' '+await r.text());return(await r.json()).id}
+async function updateFile(id,content){const r=await fetch(`https://www.googleapis.com/upload/drive/v3/files/${id}?uploadType=media`,{method:'PATCH',headers:{Authorization:'Bearer '+accessToken,'Content-Type':'application/json'},body:content});if(!r.ok)throw new Error('Update '+r.status)}
+async function loadDriveFile(){
+  setSyncBadge('ing','Loading...');dlog('Searching for '+getFilename(),'info');
+  try{
+    driveFileId=await findFile();
+    if(driveFileId){const raw=await readFile(driveFileId);try{trades=JSON.parse(raw);if(!Array.isArray(trades))trades=[]}catch{trades=[]};dlog('Loaded '+trades.length+' trades','ok')}
+    else{dlog('Not found — creating...','info');driveFileId=await createFile('[]');trades=[];dlog('Created '+getFilename(),'ok')}
+    document.getElementById('drive-file-label').textContent='Google Drive / '+getFilename()+' · '+trades.length+' entries';
+    setSyncBadge('ok','Synced');
+  }catch(e){setSyncBadge('err','Drive error');dlog('Error: '+e.message,'err')}
+}
+async function saveToDrive(){
+  if(!accessToken){dlog('Not authenticated','err');return}
+  setSyncBadge('ing','Saving...');
+  try{
+    const content=JSON.stringify(trades,null,2);
+    if(!driveFileId)driveFileId=await createFile(content);
+    else await updateFile(driveFileId,content);
+    document.getElementById('drive-file-label').textContent='Google Drive / '+getFilename()+' · '+trades.length+' entries · saved '+new Date().toLocaleTimeString();
+    setSyncBadge('ok','Saved '+new Date().toLocaleTimeString());
+    dlog('Saved '+trades.length+' trades','ok');
+  }catch(e){setSyncBadge('err','Save failed');dlog('Save error: '+e.message,'err')}
+}
+async function syncNow(){await loadDriveFile();renderLog()}
+async function pushAll(){await saveToDrive()}
+
+// ── Weakness guards ─────────────────────────────────────────────────────────
+const SPEC_LIST=['BBIO','JMIA','LEGN','ATZAF','TSSI','RDDT'];
+function checkWeakness(){
+  const tk=document.getElementById('f-ticker').value;
+  const action=document.getElementById('f-action').value;
+  const ftype=document.getElementById('f-type').value;
+  let wmsg='',gmsg='';
+  if(SPEC_LIST.includes(tk))wmsg=`${tk} is on your speculative/trim watch list. Weakness #2: over-weighting pre-profit names. Has your exit plan changed?`;
+  if(tk==='IBRX'&&(action==='BUY'||action==='ADD'))wmsg='IBRX is at your 5.2% hard cap. Adding risks exceeding your documented concentration limit.';
+  if(ftype==='Momentum / news-driven'){gmsg='Weakness #4: News-driven adds are a documented danger pattern. Is this a real thesis change or headline reaction? 60-second cool-down enforced.';if(!cdActive)startCooldown()}
+  if((action==='SELL'||action==='TRIM')&&tk)gmsg='Weakness #1: Selling a compounder too early is your most expensive habit. Has the thesis actually broken — or just the price?';
+  const wa=document.getElementById('w-alert');wa.className='alert alert-warn'+(wmsg?' show':'');wa.textContent=wmsg;
+  const ga=document.getElementById('g-alert');ga.className='alert alert-warn'+(gmsg?' show':'');ga.textContent=gmsg;
+}
+function startCooldown(){
+  cdActive=true;const bar=document.getElementById('cooldown');const fill=document.getElementById('cd-fill');const timer=document.getElementById('cd-time');
+  bar.classList.add('show');let s=60;fill.style.width='0%';
+  const iv=setInterval(()=>{s--;timer.textContent=s+'s';fill.style.width=Math.round((60-s)/60*100)+'%';if(s<=0){clearInterval(iv);bar.classList.remove('show');cdActive=false}},1000);
+}
+
+// ── Prior trades sidebar ────────────────────────────────────────────────────
+function tickerChanged(){
+  const tk=document.getElementById('f-ticker').value;
+  updateQuickBtns(tk);
+  checkWeakness();
+  showPriorTrades(tk);
+}
+function showPriorTrades(tk){
+  const sidebar=document.getElementById('prior-sidebar');
+  const list=document.getElementById('prior-list');
+  if(!tk||tk.length<2){sidebar.classList.add('hidden');return}
+  const prior=trades.filter(t=>t.ticker===tk).slice(0,8);
+  if(!prior.length){sidebar.classList.add('hidden');return}
+  sidebar.classList.remove('hidden');
+  document.getElementById('prior-title').textContent='Prior trades — '+tk;
+  document.getElementById('prior-subtitle').textContent=prior.length+' entr'+(prior.length===1?'y':'ies')+' found';
+  const bc=a=>a==='BUY'||a==='ADD'?'b-buy':a==='SELL'||a==='TRIM'?'b-sell':(a||'').startsWith('OPTIONS')?'b-opt':'b-hold';
+  list.innerHTML=prior.map((t,i)=>`
+    <div class="prior-trade">
+      <div class="prior-trade-top">
+        <span class="badge ${bc(t.action)}">${t.action}</span>
+        <span class="prior-trade-date">${t.date}${t.price?' · $'+parseFloat(t.price).toFixed(2):''}</span>
+      </div>
+      <div class="prior-trade-body">
+        <strong>${t.type||'No type'}</strong>
+        ${t.thesis?t.thesis.slice(0,100)+(t.thesis.length>100?'…':''):'<em style="color:var(--text3)">No thesis recorded</em>'}
+      </div>
+      ${(t.thesis&&t.thesis.length>100)||t.catalyst||t.wrong||t.target?`
+        <button class="prior-expand" onclick="togglePrior(this,${i})">Show more ▾</button>
+        <div class="prior-detail" id="pd-${i}">
+          ${t.catalyst?`<div class="prior-detail-row"><strong>Catalyst</strong>${t.catalyst}</div>`:''}
+          ${t.wrong?`<div class="prior-detail-row"><strong>Thesis-break trigger</strong>${t.wrong}</div>`:''}
+          ${t.target?`<div class="prior-detail-row"><strong>Target</strong>${t.target}${t.stop?' · Stop: '+t.stop:''}</div>`:''}
+          ${t.notes?`<div class="prior-detail-row"><strong>Notes</strong>${t.notes}</div>`:''}
+          <div class="prior-detail-row"><strong>Conviction</strong>${t.conviction||'—'}/5 · Checklist ${t.checks||0}/8</div>
+        </div>`:''}
+    </div>`).join('');
+}
+function togglePrior(btn,i){
+  const d=document.getElementById('pd-'+i);
+  d.classList.toggle('open');
+  btn.textContent=d.classList.contains('open')?'Show less ▴':'Show more ▾';
+}
+
+// ── AI research ─────────────────────────────────────────────────────────────
+function updateQuickBtns(tk){
+  const c=document.getElementById('quick-row');
+  if(!tk||tk.length<2){c.innerHTML='';return}
+  const qs=[`${tk} current P/E vs sector peers`,`Latest news for ${tk}`,`${tk} analyst price targets`,`${tk} main risk factors`];
+  c.innerHTML=qs.map(q=>`<button class="qbtn" onclick="setQ('${q.replace(/'/g,"\\'")}')"> ${q}</button>`).join('');
+}
+function setQ(q){document.getElementById('ai-q').value=q;doAsk()}
+async function doAsk(){
+  const q=document.getElementById('ai-q').value.trim();if(!q)return;
+  const key=cfg('api_key');
+  if(!key){const r=document.getElementById('ai-resp');r.className='ai-resp show';r.innerHTML='<span style="color:var(--red-text)">No Anthropic API key saved. Add it above or in Settings.</span>';return}
+  const tk=document.getElementById('f-ticker').value;
+  const resp=document.getElementById('ai-resp');resp.className='ai-resp show';resp.innerHTML='<span class="ai-thinking">Researching with live web search...</span>';
+  try{
+    const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      body:JSON.stringify({model:'claude-sonnet-4-5',max_tokens:1000,
+        system:'You are a stock research assistant for a long-term retail investor focused on AI infrastructure, semiconductors, moat-based compounders, and quality biotech. Answer concisely with key facts, valuation context, and risks. Use bullet points for lists.',
+        tools:[{type:'web_search_20250305',name:'web_search'}],
+        messages:[{role:'user',content:(tk?`The user is evaluating a trade in ${tk}. `:'')+q}]})});
+    const d=await r.json();if(d.error)throw new Error(d.error.message);
+    const txt=(d.content||[]).filter(x=>x.type==='text').map(x=>x.text).join('\n').trim();
+    resp.innerHTML=txt?txt.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/\n/g,'<br>'):'<span class="ai-thinking">No response.</span>';
+  }catch(e){resp.innerHTML=`<span style="color:var(--red-text)">Error: ${e.message}</span>`}
+}
+
+// ── Conviction ───────────────────────────────────────────────────────────────
+const CONV_CLS=['','conv-sel-1','conv-sel-2','conv-sel-3','conv-sel-4','conv-sel-5'];
+function pickConv(n,el){document.querySelectorAll('.conv-btn').forEach(b=>b.className='conv-btn');el.classList.add(CONV_CLS[n]);conviction=n}
+
+// ── Checklist ────────────────────────────────────────────────────────────────
+function toggleCheck(el){
+  if(event.target.tagName==='INPUT')return; // let native checkbox handle itself, then update
+  const cb=el.querySelector('input');cb.checked=!cb.checked;
+  el.classList.toggle('checked',cb.checked);
+  const done=document.querySelectorAll('#checklist .check-item.checked').length;
+  document.getElementById('chk-lbl').textContent=`${done} / 8 checklist items`;
+}
+document.addEventListener('change',e=>{
+  if(e.target.matches('#checklist input[type=checkbox]')){
+    const item=e.target.closest('.check-item');
+    item.classList.toggle('checked',e.target.checked);
+    const done=document.querySelectorAll('#checklist .check-item.checked').length;
+    document.getElementById('chk-lbl').textContent=`${done} / 8 checklist items`;
+  }
+});
+
+// ── Save entry ───────────────────────────────────────────────────────────────
+async function saveEntry(){
+  const tk=document.getElementById('f-ticker').value.trim().toUpperCase();
+  const action=document.getElementById('f-action').value;
+  if(!tk||!action){alert('Ticker and Action are required.');return}
+  const checks=document.querySelectorAll('#checklist .check-item.checked').length;
+  const entry={id:Date.now(),date:document.getElementById('f-date').value||new Date().toISOString().split('T')[0],
+    ticker:tk,action,type:document.getElementById('f-type').value,
+    price:document.getElementById('f-price').value,qty:document.getElementById('f-qty').value,
+    thesis:document.getElementById('f-thesis').value,catalyst:document.getElementById('f-catalyst').value,
+    fomo:document.getElementById('f-fomo').value,target:document.getElementById('f-target').value,
+    stop:document.getElementById('f-stop').value,maxloss:document.getElementById('f-maxloss').value,
+    wrong:document.getElementById('f-wrong').value,hold:document.getElementById('f-hold').value,
+    conviction,checks,notes:document.getElementById('f-notes').value,
+    emotion:document.getElementById('f-emotion').value};
+  trades.unshift(entry);
+  await saveToDrive();
+  clearForm();
+}
+function clearForm(){
+  ['f-ticker','f-price','f-qty','f-thesis','f-catalyst','f-target','f-stop','f-maxloss','f-wrong','f-hold','f-notes'].forEach(id=>document.getElementById(id).value='');
+  ['f-action','f-type','f-fomo','f-emotion'].forEach(id=>document.getElementById(id).selectedIndex=0);
+  document.querySelectorAll('#checklist .check-item').forEach(el=>{el.classList.remove('checked');el.querySelector('input').checked=false});
+  document.querySelectorAll('.conv-btn').forEach(b=>b.className='conv-btn');
+  document.getElementById('ai-resp').className='ai-resp';
+  document.getElementById('ai-q').value='';
+  document.getElementById('w-alert').className='alert alert-warn';
+  document.getElementById('g-alert').className='alert alert-warn';
+  document.getElementById('quick-row').innerHTML='';
+  document.getElementById('chk-lbl').textContent='0 / 8 checklist items';
+  document.getElementById('f-date').value=new Date().toISOString().split('T')[0];
+  document.getElementById('prior-sidebar').classList.add('hidden');
+  conviction=0;
+}
+
+// ── Tabs ─────────────────────────────────────────────────────────────────────
+function showTab(t){
+  document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById('tab-'+t).classList.add('active');
+  document.getElementById('panel-'+t).classList.add('active');
+  if(t==='log')renderLog();
+  if(t==='review')renderReview();
+}
+
+// ── Trade log ────────────────────────────────────────────────────────────────
+function renderLog(){
+  const fa=document.getElementById('fl-action').value;
+  const ft=document.getElementById('fl-type').value;
+  const fk=(document.getElementById('fl-ticker').value||'').toUpperCase();
+  const filtered=trades.filter(t=>(!fa||t.action===fa)&&(!ft||t.type===ft)&&(!fk||(t.ticker||'').includes(fk)));
+  const out=document.getElementById('log-out');
+  if(!filtered.length){out.innerHTML='<div class="empty"><strong>No entries yet</strong>Log your first trade decision to see it here.</div>';return}
+  const bc=a=>a==='BUY'||a==='ADD'?'b-buy':a==='SELL'||a==='TRIM'?'b-sell':(a||'').startsWith('OPTIONS')?'b-opt':'b-hold';
+  const rows=filtered.map(t=>`
+    <tr onclick="openDrawer(${t.id})" title="Click to view full details">
+      <td style="width:92px;color:var(--text2)">${t.date||''}</td>
+      <td style="width:70px;font-weight:600">${t.ticker||''}</td>
+      <td style="width:110px"><span class="badge ${bc(t.action)}">${t.action||''}</span></td>
+      <td style="width:72px">${t.price?'$'+parseFloat(t.price).toFixed(2):'—'}</td>
+      <td style="width:58px;text-align:center">${t.conviction||'—'}/5</td>
+      <td style="width:50px;text-align:center">${t.checks||0}/8</td>
+      <td style="width:140px;color:var(--text2);font-size:12px">${(t.type||'').replace('Momentum / news-driven','Momentum')||'—'}</td>
+      <td style="color:var(--text2);font-size:12px">${(t.thesis||'').slice(0,80)}${(t.thesis||'').length>80?'…':''}</td>
+      <td style="width:50px;text-align:center;color:var(--text3);font-size:16px">›</td>
+    </tr>`).join('');
+  out.innerHTML=`<div class="log-scroll"><table class="log-tbl">
+    <thead><tr><th>Date</th><th>Ticker</th><th>Action</th><th>Price</th><th>Conv.</th><th>Chks</th><th>Type</th><th>Thesis</th><th></th></tr></thead>
+    <tbody>${rows}</tbody>
+  </table></div>`;
+}
+
+// ── Drawer (view + edit) ─────────────────────────────────────────────────────
+function openDrawer(id){
+  drawerTradeId=id;drawerEditMode=false;
+  const t=trades.find(x=>x.id===id);if(!t)return;
+  document.getElementById('drawer-title').textContent=t.ticker+' — '+t.action+' ('+t.date+')';
+  document.getElementById('drawer-edit-btn').textContent='Edit';
+  document.getElementById('drawer-actions').style.display='none';
+  renderDrawerView(t);
+  document.getElementById('drawer-overlay').classList.add('open');
+  document.body.style.overflow='hidden';
+}
+function renderDrawerView(t){
+  const bc=a=>a==='BUY'||a==='ADD'?'b-buy':a==='SELL'||a==='TRIM'?'b-sell':(a||'').startsWith('OPTIONS')?'b-opt':'b-hold';
+  const CONV_LABELS=['','Speculative','Below average','Moderate','High confidence','Core position'];
+  const row=(label,val)=>val?`<div class="detail-section"><div class="detail-label">${label}</div><div class="detail-value">${val}</div></div>`:'';
+  document.getElementById('drawer-body').innerHTML=`
+    <div class="detail-grid">
+      <div><div class="detail-label">Action</div><span class="badge ${bc(t.action)}">${t.action}</span></div>
+      <div><div class="detail-label">Date</div><div class="detail-value">${t.date||'—'}</div></div>
+      <div><div class="detail-label">Price</div><div class="detail-value">${t.price?'$'+parseFloat(t.price).toFixed(2):'—'}</div></div>
+      <div><div class="detail-label">Quantity</div><div class="detail-value">${t.qty||'—'}</div></div>
+      <div><div class="detail-label">Conviction</div><div class="detail-value">${t.conviction?t.conviction+'/5 — '+CONV_LABELS[t.conviction]:'—'}</div></div>
+      <div><div class="detail-label">Checklist</div><div class="detail-value">${t.checks||0}/8 completed</div></div>
+    </div>
+    ${row('Trade type',t.type)}
+    ${row('Core thesis',t.thesis)}
+    ${row('Catalyst / trigger',t.catalyst)}
+    ${row('Honest self-check',t.fomo)}
+    <hr style="margin:16px 0">
+    ${row('Price target / timeline',t.target)}
+    ${row('Stop-loss level',t.stop)}
+    ${row('Max loss accepted',t.maxloss)}
+    ${row('What would prove thesis WRONG?',t.wrong)}
+    ${row('What would justify holding longer?',t.hold)}
+    <hr style="margin:16px 0">
+    ${row('Notes',t.notes)}
+    ${row('Emotional state',t.emotion)}
+    <div style="margin-top:20px">
+      <button class="btn btn-red btn-sm" onclick="deleteFromDrawer()">Delete this entry</button>
+    </div>`;
+}
+function renderDrawerEdit(t){
+  const ACTIONS=['BUY','SELL','ADD','TRIM','OPTIONS-BUY','OPTIONS-SELL','HOLD (reaffirm)'];
+  const TYPES=['Long-term thesis','Tactical add on dip','Momentum / news-driven','Rebalance','Stop-loss exit','Options strategy','Speculative'];
+  const FOMOS=['Real thesis change / new fundamental data','Quality dip — adding to existing compounder','Positive news momentum','FOMO — I might be chasing','Uncertain — need more research'];
+  const EMOTIONS=['Calm and well-researched','Excited (watch for FOMO bias)','Anxious / fearful','Frustrated (revenge trade risk)','Confident after positive news'];
+  const sel=(arr,val)=>arr.map(o=>`<option${o===val?' selected':''}>${o}</option>`).join('');
+  const ef=(label,id,val,type='text')=>`<div class="edit-field"><label>${label}</label><input type="${type}" id="e-${id}" value="${(val||'').toString().replace(/"/g,'&quot;')}"></div>`;
+  const ta=(label,id,val)=>`<div class="edit-field"><label>${label}</label><textarea id="e-${id}" style="min-height:70px">${val||''}</textarea></div>`;
+  document.getElementById('drawer-body').innerHTML=`
+    <div class="row3" style="margin-bottom:12px">
+      ${ef('Ticker','ticker',t.ticker)}
+      <div class="edit-field"><label>Action</label><select id="e-action"><option value="">—</option>${sel(ACTIONS,t.action)}</select></div>
+      <div class="edit-field"><label>Trade type</label><select id="e-type"><option value="">—</option>${sel(TYPES,t.type)}</select></div>
+    </div>
+    <div class="row3" style="margin-bottom:16px">
+      ${ef('Price ($)','price',t.price,'number')}
+      ${ef('Quantity','qty',t.qty,'number')}
+      ${ef('Date','date',t.date,'date')}
+    </div>
+    ${ta('Core thesis','thesis',t.thesis)}
+    ${ta('Catalyst / trigger','catalyst',t.catalyst)}
+    <div class="edit-field"><label>Honest self-check</label><select id="e-fomo"><option value="">—</option>${sel(FOMOS,t.fomo)}</select></div>
+    <hr style="margin:14px 0">
+    ${ef('Target price / timeline','target',t.target)}
+    ${ef('Stop-loss level','stop',t.stop)}
+    ${ef('Max loss accepted','maxloss',t.maxloss)}
+    ${ta('What would prove thesis WRONG?','wrong',t.wrong)}
+    ${ta('What would justify holding longer?','hold',t.hold)}
+    <hr style="margin:14px 0">
+    ${ta('Notes','notes',t.notes)}
+    <div class="edit-field"><label>Emotional state</label><select id="e-emotion"><option value="">—</option>${sel(EMOTIONS,t.emotion)}</select></div>`;
+}
+function toggleEdit(){
+  const t=trades.find(x=>x.id===drawerTradeId);if(!t)return;
+  drawerEditMode=!drawerEditMode;
+  document.getElementById('drawer-edit-btn').textContent=drawerEditMode?'View':'Edit';
+  document.getElementById('drawer-actions').style.display=drawerEditMode?'flex':'none';
+  if(drawerEditMode)renderDrawerEdit(t);else renderDrawerView(t);
+}
+async function saveEdit(){
+  const idx=trades.findIndex(x=>x.id===drawerTradeId);if(idx<0)return;
+  const g=id=>{const el=document.getElementById('e-'+id);return el?el.value:''};
+  trades[idx]={...trades[idx],
+    ticker:(g('ticker')||'').toUpperCase(),action:g('action'),type:g('type'),
+    price:g('price'),qty:g('qty'),date:g('date'),
+    thesis:g('thesis'),catalyst:g('catalyst'),fomo:g('fomo'),
+    target:g('target'),stop:g('stop'),maxloss:g('maxloss'),
+    wrong:g('wrong'),hold:g('hold'),notes:g('notes'),emotion:g('emotion')};
+  await saveToDrive();
+  drawerEditMode=false;
+  document.getElementById('drawer-edit-btn').textContent='Edit';
+  document.getElementById('drawer-actions').style.display='none';
+  const t=trades[idx];
+  document.getElementById('drawer-title').textContent=t.ticker+' — '+t.action+' ('+t.date+')';
+  renderDrawerView(t);
+  renderLog();
+}
+function cancelEdit(){
+  drawerEditMode=false;
+  document.getElementById('drawer-edit-btn').textContent='Edit';
+  document.getElementById('drawer-actions').style.display='none';
+  const t=trades.find(x=>x.id===drawerTradeId);if(t)renderDrawerView(t);
+}
+async function deleteFromDrawer(){
+  if(!confirm('Delete this trade entry?'))return;
+  trades=trades.filter(t=>t.id!==drawerTradeId);
+  await saveToDrive();
+  closeDrawerDirect();
+  renderLog();
+}
+function closeDrawer(e){if(e.target===document.getElementById('drawer-overlay'))closeDrawerDirect()}
+function closeDrawerDirect(){document.getElementById('drawer-overlay').classList.remove('open');document.body.style.overflow='';drawerTradeId=null;drawerEditMode=false}
+
+// ── CSV export ───────────────────────────────────────────────────────────────
+function exportCSV(){
+  if(!trades.length){alert('No trades to export.');return}
+  const keys=['date','ticker','action','type','price','qty','conviction','checks','thesis','catalyst','fomo','target','stop','maxloss','wrong','notes','emotion'];
+  const csv=[keys.join(','),...trades.map(t=>keys.map(k=>'"'+String(t[k]||'').replace(/"/g,'""')+'"').join(','))].join('\n');
+  const a=document.createElement('a');a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);a.download='trading_journal_'+new Date().toISOString().split('T')[0]+'.csv';a.click();
+}
+
+// ── Review ───────────────────────────────────────────────────────────────────
+function renderReview(){
+  const n=trades.length;
+  const buys=trades.filter(t=>t.action==='BUY'||t.action==='ADD').length;
+  const sells=trades.filter(t=>t.action==='SELL'||t.action==='TRIM').length;
+  const avgC=n?(trades.reduce((s,t)=>s+(Number(t.conviction)||0),0)/n).toFixed(1):'—';
+  document.getElementById('metrics-out').innerHTML=[['Entries',n],['Buys / adds',buys],['Sells / trims',sells],['Avg conviction',avgC+'/5']].map(([l,v])=>`<div class="mc"><div class="mc-val">${v}</div><div class="mc-lbl">${l}</div></div>`).join('');
+  const lowC=trades.filter(t=>Number(t.conviction)<=2&&(t.action==='BUY'||t.action==='ADD')).length;
+  const incC=trades.filter(t=>(Number(t.checks)||0)<6).length;
+  const fomo=trades.filter(t=>(t.fomo||'').includes('FOMO')).length;
+  const noE=trades.filter(t=>!t.wrong||t.wrong.length<10).length;
+  const pct=v=>n?Math.round(v/n*100)+'%':'0%';
+  const flag=(v,thr)=>`<span style="color:var(--${v>thr?'red':'green'}-text);font-weight:600">${v>thr?'Review':'OK'}</span>`;
+  document.getElementById('weakness-out').innerHTML=`<table class="weakness-tbl"><thead><tr><th>Weakness pattern</th><th>Count</th><th>% of trades</th><th>Signal</th></tr></thead><tbody>
+    <tr><td>Low-conviction buys (1–2/5)</td><td>${lowC}</td><td>${pct(lowC)}</td><td>${flag(lowC,2)}</td></tr>
+    <tr><td>Checklist below 6/8 at save</td><td>${incC}</td><td>${pct(incC)}</td><td>${flag(incC,2)}</td></tr>
+    <tr><td>Self-identified FOMO trades</td><td>${fomo}</td><td>${pct(fomo)}</td><td>${flag(fomo,0)}</td></tr>
+    <tr><td>Missing thesis-break trigger</td><td>${noE}</td><td>${pct(noE)}</td><td>${flag(noE,2)}</td></tr>
+  </tbody></table>`;
+  const em={};trades.forEach(t=>{if(t.emotion)em[t.emotion]=(em[t.emotion]||0)+1});
+  const mx=Math.max(1,...Object.values(em).concat(0));
+  document.getElementById('emotion-out').innerHTML=Object.keys(em).length
+    ?Object.entries(em).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`<div class="bar-row"><span class="bar-label">${k}</span><div class="bar-track"><div class="bar-fill" style="width:${Math.round(v/mx*100)}%"></div></div><span class="bar-val">${v}</span></div>`).join('')
+    :'<p style="font-size:13px;color:var(--text2)">No data yet.</p>';
+}
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+document.getElementById('f-date').value=new Date().toISOString().split('T')[0];
+updateApiKeyStatus();
+const savedCid=cfg('client_id');
+if(savedCid){document.getElementById('cfg-client-id').value=savedCid;document.getElementById('cfg-cid-settings').value=savedCid}
+const savedFn=cfg('filename');
+if(savedFn)document.getElementById('cfg-fname').value=savedFn;
+</script>
+</body>
+</html>
